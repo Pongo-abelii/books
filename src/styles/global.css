@@ -15,9 +15,22 @@
 
 * { box-sizing: border-box; }
 
+/*
+ * 去掉移动端点击时系统叠加的淡蓝色遮罩。
+ * Android Chrome / iOS Safari 会给可点元素加 -webkit-tap-highlight-color，
+ * 默认偏蓝，与本站暖色主题不搭，故置为透明；
+ * 可点反馈改由各组件自己的 :hover / :active 样式承担。
+ */
 html {
   -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
   scroll-behavior: smooth;
+}
+
+/* 文字选中色同样改用主题色，避免系统默认蓝 */
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 body {
@@ -250,6 +263,34 @@ th { background: var(--bg-soft); font-weight: 600; }
 .cite-box .actions {
   padding: 0 1rem 0.85rem;
   background: var(--bg);
+}
+/* 「复制当前格式」按钮：与抄录工具条同款主题样式，不用浏览器默认按钮外观 */
+.cite-box .actions button {
+  font: inherit;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  padding: 0.28rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg-soft);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.cite-box .actions button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.cite-box .actions button:active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.cite-box .actions button.done {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 /* ============ 授权条 ============ */

@@ -65,8 +65,6 @@ const hasMeta = (k: string) => entry.data[k] !== undefined && entry.data[k] !== 
       ) : null}
     </header>
 
-    <CopyBar text={plain} markdown={raw} withSource={withSource} link={url} />
-
     <div class={section === 'poems' ? 'poem-body' : 'entry-body'}>
       <slot />
     </div>
@@ -77,6 +75,8 @@ const hasMeta = (k: string) => entry.data[k] !== undefined && entry.data[k] !== 
         {hasMeta('original_author') ? ` · 原作者：${entry.data.original_author}` : ''}
       </p>
     )}
+
+    <CopyBar text={plain} markdown={raw} withSource={withSource} link={url} />
 
     <CitationBox input={citeInput} />
     <LicenseBar licenseId={entry.data.license} url={url} section={section} author={SITE.author} />
