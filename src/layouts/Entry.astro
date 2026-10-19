@@ -44,7 +44,7 @@ const hasMeta = (k: string) => entry.data[k] !== undefined && entry.data[k] !== 
 
 <Base title={entry.data.title} description={entry.data.summary ?? SITE.description} path={`/${section}/${entry.id}/`}>
   <article>
-    <header class="entry-head">
+    <header class={section === 'poems' ? 'entry-head is-centered' : 'entry-head'}>
       <h1 class="entry-title">{entry.data.title}</h1>
       <div class="entry-meta">
         <span>{entry.data.authors.join('、')}</span>

@@ -169,6 +169,22 @@ th { background: var(--bg-soft); font-weight: 600; }
 }
 .entry-meta .sep { color: var(--line); }
 
+/*
+ * 诗词页专用：正文是居中的，标题与 meta 行也跟着居中才协调。
+ * 只加在 .entry-head.is-centered 上，其他栏目（正文左对齐）不受影响。
+ * 用 flex-wrap + justify-content 让 meta 换行时每行都居中；
+ * 标签云同理居中。
+ */
+.entry-head.is-centered {
+  text-align: center;
+}
+.entry-head.is-centered .entry-meta {
+  justify-content: center;
+}
+.entry-head.is-centered .tag-cloud {
+  justify-content: center;
+}
+
 /* 诗词正文：居中、字距放开 */
 .poem-body {
   text-align: center;
