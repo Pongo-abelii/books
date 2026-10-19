@@ -1,0 +1,21 @@
+---
+import Base from '../../layouts/Base.astro';
+import EntryList from '../../components/EntryList.astro';
+import { allPublished, groupBy } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const all = await allPublished();
+  const map = groupBy(all, ({ entry }) => entry.data.authors ?? []);
+  return [...map.keys()].map((author) => ({ params: { author }, props: { author } }));
+}
+
+const { author } = Astro.props;
+const all = await allPublished();
+const items = all.filter(({ entry }) => (entry.data.authors ?? []).includes(author));
+---
+
+<Base title={`作者：${author}`} path={`/authors/${author}/`}>
+  <h1>{author}</h1>
+  <p style="color:var(--fg-mute);font-family:var(--sans);font-size:.85rem">共 {items.length} 篇</p>
+  <EntryList items={items} showSection />
+</Base>

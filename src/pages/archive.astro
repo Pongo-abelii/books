@@ -1,0 +1,13 @@
+---
+import Base from '../layouts/Base.astro';
+import EntryList from '../components/EntryList.astro';
+import { allPublished } from '../lib/content';
+
+const all = await allPublished();
+---
+
+<Base title="全部作品" path="/archive/">
+  <h1>全部作品</h1>
+  <p style="color:var(--fg-mute);font-family:var(--sans);font-size:.85rem">共 {all.length} 篇</p>
+  <EntryList items={all} showSection />
+</Base>

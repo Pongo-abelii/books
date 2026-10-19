@@ -1,0 +1,62 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/url';
+import { LICENSES, type LicenseId } from '../lib/license';
+import { SITE } from '../consts';
+
+const entries = Object.entries(LICENSES) as Array<[LicenseId, (typeof LICENSES)[LicenseId]]>;
+---
+
+<Base title="授权说明" path="/license/">
+  <h1>授权说明</h1>
+
+  <p>
+    本站内容分两类，授权不同，请分别对待。
+  </p>
+
+  <h2>一、原创作品</h2>
+  <p>
+    {SITE.author}本人创作的诗词、文章、文档，采用
+    <strong>CC BY-NC-SA 4.0</strong> 授权：可自由转载、改作，
+    须署名作者与出处，不得用于商业目的，改作须以相同协议共享。
+  </p>
+  <p>
+    如需商业使用或需以其他方式使用，请<a href={url('/about/')}>联系作者</a>取得许可。
+  </p>
+
+  <h2>二、整理转载作品</h2>
+  <p>
+    「整理」栏目收录的是他处佳作。这类内容中：
+  </p>
+  <ul>
+    <li><strong>原作部分</strong>——权利归原作者或已进入公有领域，本站不主张任何权利；</li>
+    <li><strong>整理、注释、校勘部分</strong>——为{SITE.author}的成果，采用 CC BY-NC-SA 4.0 授权。</li>
+  </ul>
+  <p>
+    每篇页脚会分别标明这两层。若原作者或权利人认为本站的转载不妥，请联系删除。
+  </p>
+
+  <h2>三、授权类型对照</h2>
+  <table>
+    <thead>
+      <tr><th>授权</th><th>可转载</th><th>需署名</th><th>可商用</th><th>说明</th></tr>
+    </thead>
+    <tbody>
+      {entries.map(([, info]) => (
+        <tr>
+          <td>{info.url ? <a href={info.url} rel="license noopener" target="_blank">{info.name}</a> : info.name}</td>
+          <td>{info.canReproduce ? '是' : '否'}</td>
+          <td>{info.requiresAttribution ? '是' : '否'}</td>
+          <td>{info.canCommercial ? '是' : '否'}</td>
+          <td>{info.note}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  <h2>四、怎么抄录</h2>
+  <p>
+    每篇正文上方有抄录工具条，页脚有引用格式盒。
+    也可直接取用纯文本端点：<code>/raw/&lt;路径&gt;.txt</code>。
+  </p>
+</Base>

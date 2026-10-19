@@ -1,0 +1,22 @@
+---
+import Base from '../../layouts/Base.astro';
+import { url } from '../../lib/url';
+import { allPublished, groupBy } from '../../lib/content';
+
+const all = await allPublished();
+const map = groupBy(all, ({ entry }) => entry.data.tags ?? []);
+const tags = [...map.entries()].sort((a, b) => b[1].length - a[1].length);
+---
+
+<Base title="标签" path="/tags/">
+  <h1>标签</h1>
+  {tags.length === 0 ? (
+    <p class="empty">暂无标签</p>
+  ) : (
+    <div class="tag-cloud">
+      {tags.map(([tag, list]) => (
+        <a href={url(`/tags/${encodeURIComponent(tag)}/`)}>{tag}（{list.length}）</a>
+      ))}
+    </div>
+  )}
+</Base>

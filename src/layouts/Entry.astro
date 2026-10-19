@@ -1,0 +1,84 @@
+---
+/**
+ * 条目详情布局：文章头 + 抄录条 + 正文 + 引用盒 + 授权条
+ *
+ * Astro 7：正文用 render(entry) 得到的 Content 组件渲染。
+ */
+import Base from './Base.astro';
+import CopyBar from '../components/CopyBar.astro';
+import CitationBox from '../components/CitationBox.astro';
+import LicenseBar from '../components/LicenseBar.astro';
+import { entryUrl, isoDate } from '../lib/content';
+import { markdownToPlainText } from '../lib/plaintext';
+import { url as withBase } from '../lib/url';
+import { SITE, type SectionKey } from '../consts';
+import type { CitationInput } from '../lib/cite';
+
+interface Props {
+  section: SectionKey;
+  entry: any;
+  /** 原始 Markdown 正文（用于「复制 Markdown」） */
+  raw?: string;
+}
+const { section, entry, raw } = Astro.props;
+const url = entryUrl(Astro.site, section, entry);
+const plain = markdownToPlainText(raw ?? '');
+const withSource = [
+  entry.data.title,
+  entry.data.authors.join('、'),
+  url,
+  `访问日期：${isoDate(new Date())}`,
+].join('\n');
+
+const citeInput: CitationInput = {
+  authors: entry.data.authors,
+  title: entry.data.title,
+  siteName: SITE.title,
+  url,
+  date: entry.data.date,
+  originalAuthor: entry.data.original_author,
+};
+
+const hasMeta = (k: string) => entry.data[k] !== undefined && entry.data[k] !== null && entry.data[k] !== '';
+---
+
+<Base title={entry.data.title} description={entry.data.summary ?? SITE.description} path={`/${section}/${entry.id}/`}>
+  <article>
+    <header class="entry-head">
+      <h1 class="entry-title">{entry.data.title}</h1>
+      <div class="entry-meta">
+        <span>{entry.data.authors.join('、')}</span>
+        <span class="sep">·</span>
+        <time datetime={isoDate(entry.data.date)}>{isoDate(entry.data.date)}</time>
+        {hasMeta('dynasty') && <><span class="sep">·</span><span>{entry.data.dynasty}</span></>}
+        {hasMeta('form') && <><span class="sep">·</span><span>{entry.data.form}{hasMeta('ci_pai') ? ` · ${entry.data.ci_pai}` : ''}</span></>}
+        {hasMeta('genre') && <><span class="sep">·</span><span>{entry.data.genre}</span></>}
+        {hasMeta('excerpt_from') && <><span class="sep">·</span><span>整理自《{entry.data.excerpt_from}》</span></>}
+        {entry.data.updated && (
+          <><span class="sep">·</span><span>修订于 {isoDate(entry.data.updated)}</span></>
+        )}
+      </div>
+      {entry.data.tags?.length ? (
+        <div class="tag-cloud">
+          {entry.data.tags.map((t: string) => <a href={withBase(`/tags/${encodeURIComponent(t)}/`)}>#{t}</a>)}
+        </div>
+      ) : null}
+    </header>
+
+    <CopyBar text={plain} markdown={raw} withSource={withSource} link={url} />
+
+    <div class={section === 'poems' ? 'poem-body' : 'entry-body'}>
+      <slot />
+    </div>
+
+    {section === 'excerpts' && hasMeta('excerpt_from') && (
+      <p class="entry-meta" style="margin-top:2rem">
+        出处：《{entry.data.excerpt_from}》{hasMeta('excerpt_ref') ? ` · ${entry.data.excerpt_ref}` : ''}
+        {hasMeta('original_author') ? ` · 原作者：${entry.data.original_author}` : ''}
+      </p>
+    )}
+
+    <CitationBox input={citeInput} />
+    <LicenseBar licenseId={entry.data.license} url={url} section={section} author={SITE.author} />
+  </article>
+</Base>

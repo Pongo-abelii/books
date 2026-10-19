@@ -1,0 +1,12 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/url';
+---
+
+<Base title="页面不存在" path="/404">
+  <div class="empty">
+    <h1>404</h1>
+    <p>这里没有你要找的东西。</p>
+    <p><a href={url('/')}>回到首页</a>　·　<a href={url('/archive/')}>全部作品</a>　·　<a href={url('/search/')}>搜索</a></p>
+  </div>
+</Base>

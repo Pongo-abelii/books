@@ -1,0 +1,43 @@
+---
+/**
+ * 条目列表
+ */
+import { formatDate, entryPath } from '../lib/content';
+import { url } from '../lib/url';
+import type { SectionKey } from '../consts';
+
+interface Props {
+  items: Array<{ section: SectionKey; entry: any }>;
+  /** 是否显示栏目名 */
+  showSection?: boolean;
+}
+const { items, showSection = false } = Astro.props;
+const SECTION_LABEL: Record<SectionKey, string> = {
+  docs: '文档', poems: '古诗', essays: '作文', excerpts: '整理',
+};
+---
+
+{items.length === 0 ? (
+  <p class="empty">暂无内容</p>
+) : (
+  <ul class="entry-list">
+    {items.map(({ section, entry }) => (
+      <li>
+        <div class="title">
+          <a href={url(entryPath(section, entry))}>{entry.data.title}</a>
+        </div>
+        {entry.data.summary && <p class="summary">{entry.data.summary}</p>}
+        <div class="meta">
+          {showSection && <span>{SECTION_LABEL[section]}</span>}
+          <span>{entry.data.authors.join('、')}</span>
+          <time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date)}</time>
+          {entry.data.form && <span>{entry.data.form}</span>}
+          {entry.data.dynasty && <span>{entry.data.dynasty}</span>}
+          {entry.data.tags?.length ? (
+            <span>{entry.data.tags.map((t: string) => `#${t}`).join(' ')}</span>
+          ) : null}
+        </div>
+      </li>
+    ))}
+  </ul>
+)}

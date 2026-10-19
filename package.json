@@ -1,0 +1,28 @@
+{
+  "name": "books",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "江栖文集 —— 个人诗文文集静态站点",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check && node scripts/check-content.mjs",
+    "check:content": "node scripts/check-content.mjs",
+    "test": "vitest run",
+    "search": "pagefind --site dist --force-language zh-cn"
+  },
+  "dependencies": {
+    "@astrojs/markdown-remark": "^7.3.3",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "^7.4.0",
+    "pagefind": "^1.5.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.4"
+  }
+}

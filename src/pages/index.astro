@@ -1,0 +1,64 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/url';
+import EntryList from '../components/EntryList.astro';
+import { allPublished, published, groupBy } from '../lib/content';
+import { SITE, SECTIONS, SECTION_ORDER } from '../consts';
+
+const all = await allPublished();
+const latest = all.slice(0, 8);
+const featured = all.filter(({ entry }) => entry.data.featured).slice(0, 6);
+
+// 各栏目计数
+const counts = await Promise.all(
+  SECTION_ORDER.map(async (k) => [k, (await published(k)).length] as const),
+);
+
+// 标签云（取前 20）
+const tagMap = groupBy(all, ({ entry }) => entry.data.tags ?? []);
+const topTags = [...tagMap.entries()]
+  .sort((a, b) => b[1].length - a[1].length)
+  .slice(0, 20);
+---
+
+<Base path="/">
+  <section style="text-align:center;margin:2rem 0 3rem">
+    <h1 style="font-size:2rem;letter-spacing:.15em">{SITE.title}</h1>
+    <p style="color:var(--fg-soft);letter-spacing:.05em">诗以言志，文以载道</p>
+    <p style="font-family:var(--sans);font-size:.82rem;color:var(--fg-mute)">
+      {counts.map(([k, n], i) => (
+        <>{i > 0 && '　·　'}<a href={url(`/${SECTIONS[k].path}/`)}>{SECTIONS[k].name} {n}</a></>
+      ))}
+    </p>
+  </section>
+
+  {featured.length > 0 && (
+    <section>
+      <div class="section-head">
+        <h2>精选</h2>
+      </div>
+      <EntryList items={featured} showSection />
+    </section>
+  )}
+
+  <section>
+    <div class="section-head">
+      <h2>最近更新</h2>
+      <a class="more" href={url('/archive/')}>全部 →</a>
+    </div>
+    <EntryList items={latest} showSection />
+  </section>
+
+  {topTags.length > 0 && (
+    <section>
+      <div class="section-head">
+        <h2>标签</h2>
+      </div>
+      <div class="tag-cloud">
+        {topTags.map(([tag, list]) => (
+          <a href={url(`/tags/${encodeURIComponent(tag)}/`)}>{tag}（{list.length}）</a>
+        ))}
+      </div>
+    </section>
+  )}
+</Base>

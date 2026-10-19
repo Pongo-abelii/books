@@ -1,0 +1,28 @@
+---
+import Base from '../../layouts/Base.astro';
+import { url } from '../../lib/url';
+import EntryList from '../../components/EntryList.astro';
+import { published } from '../../lib/content';
+import { DYNASTY_ORDER } from '../../consts';
+
+export async function getStaticPaths() {
+  const items = await published('poems');
+  const dynasties = [...new Set(items.map((e) => e.data.dynasty))];
+  return dynasties.map((dynasty) => ({ params: { dynasty }, props: { dynasty } }));
+}
+
+const { dynasty } = Astro.props;
+const items = (await published('poems')).filter((e) => e.data.dynasty === dynasty);
+const idx = DYNASTY_ORDER.indexOf(dynasty as any);
+const next = idx >= 0 && idx < DYNASTY_ORDER.length - 1 ? DYNASTY_ORDER[idx + 1] : undefined;
+---
+
+<Base title={`${dynasty}诗`} path={`/dynasty/${dynasty}/`}>
+  <h1>{dynasty}</h1>
+  <p style="color:var(--fg-mute);font-family:var(--sans);font-size:.85rem">共 {items.length} 篇</p>
+  <EntryList items={items.map((entry) => ({ section: 'poems' as const, entry }))} />
+  <p style="margin-top:2rem">
+    <a href={url('/poems/')}>← 全部古诗</a>
+    {next && <>　·　<a href={url(`/dynasty/${encodeURIComponent(next)}/`)}>{next} →</a></>}
+  </p>
+</Base>

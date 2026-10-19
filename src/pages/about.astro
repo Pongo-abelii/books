@@ -1,0 +1,48 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/url';
+import { SITE } from '../consts';
+---
+
+<Base title="关于" path="/about/">
+  <h1>关于</h1>
+
+  <p>《{SITE.title}》是{SITE.author}的个人诗文文集。</p>
+
+  <p>
+    这里存放自己写的诗、词、文章，也整理一些读到的好东西。
+    写作是自己的事，整理是替好东西留个位置——两者分开标注，谁写的归谁。
+  </p>
+
+  <h2>内容</h2>
+  <ul>
+    <li><strong>古诗</strong>——诗、词、曲、赋，按朝代与体裁归类</li>
+    <li><strong>作文</strong>——记叙、议论、散文等成篇文字</li>
+    <li><strong>文档</strong>——说明、随笔与工具性长文</li>
+    <li><strong>整理</strong>——他处佳作的整理与转载，逐条标注出处</li>
+  </ul>
+
+  <h2>关于抄录</h2>
+  <p>
+    每篇正文上方都有抄录工具条，可取纯文本、Markdown、带出处的文本；
+    每篇页脚给出四种引用格式（GB/T 7714、MLA 9、APA 7、Chicago 17）。
+    另有稳定的纯文本端点 <code>/raw/&lt;路径&gt;.txt</code>，直接取用即可，不必解析网页。
+  </p>
+  <p>
+    这些设计的用意很简单：让转载这件事变得省事。转载方省了功夫，
+    自然愿意把出处留着。
+  </p>
+
+  <h2>授权</h2>
+  <p>
+    原创作品采用 CC BY-NC-SA 4.0 授权，可署名转载，不得商用；
+    整理转载的内容，原作权利归原作者。
+    详见<a href={url('/license/')}>授权说明</a>。
+  </p>
+
+  <h2>技术</h2>
+  <p>
+    本站是纯静态站点，由 Astro 构建，托管于 GitHub Pages，不设后端，
+    不采集访问者数据。搜索由 Pagefind 在构建时生成索引，全部在浏览器本地完成。
+  </p>
+</Base>

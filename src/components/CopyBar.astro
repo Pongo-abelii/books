@@ -1,0 +1,145 @@
+---
+/**
+ * 抄录工具条：一键复制正文的多种形态
+ * 用原生 JS，不引框架。数据通过 data-* 属性传给脚本。
+ */
+interface Props {
+  /** 纯文本正文（用于「复制纯文本」） */
+  text: string;
+  /** Markdown 原文（用于「复制 Markdown」） */
+  markdown?: string;
+  /** 带出处文本（标题 + 作者 + URL + 日期） */
+  withSource: string;
+  /** 本文绝对地址（用于「复制链接」与分享） */
+  link: string;
+}
+const { text, markdown, withSource, link } = Astro.props;
+---
+
+<div class="copy-bar" data-copy-bar>
+  <span class="label">抄录：</span>
+  <button type="button" data-copy-target="text" data-payload={text}>纯文本</button>
+  {markdown && <button type="button" data-copy-target="markdown" data-payload={markdown}>Markdown</button>}
+  <button type="button" data-copy-target="source" data-payload={withSource}>带出处</button>
+  <button type="button" data-copy-target="link" data-payload={link}>复制链接</button>
+  <button type="button" data-share>分享</button>
+  <button type="button" data-print>打印</button>
+</div>
+
+<script>
+  /**
+   * 复制到剪贴板。
+   *
+   * 三级路径，逐级回退：
+   *   1. navigator.clipboard.writeText —— 需要安全上下文（HTTPS / localhost）
+   *   2. textarea + document.execCommand('copy') —— 老浏览器与部分受限环境
+   *   3. 都失败时返回 false，由调用方弹出可手动选择的面板
+   *
+   * 注意：不能只判断 window.isSecureContext —— 某些环境它返回 true 但
+   * 剪贴板写入仍被拒绝（浏览器权限策略），因此必须 try/catch 逐级试。
+   */
+  async function copyText(s: string): Promise<boolean> {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(s);
+        return true;
+      }
+    } catch { /* 落到下一级 */ }
+
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = s;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, s.length);
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      if (ok) return true;
+    } catch { /* 落到下一级 */ }
+
+    return false;
+  }
+
+  /** 兜底：自动复制不可用时，弹出面板让用户手动复制 */
+  function showManualCopy(payload: string) {
+    const prev = document.querySelector('[data-manual-copy]');
+    if (prev) prev.remove();
+
+    const wrap = document.createElement('div');
+    wrap.setAttribute('data-manual-copy', '');
+    wrap.style.cssText = 'margin:.8rem 0;border:1px solid var(--line);border-radius:6px;background:var(--bg-soft);padding:.8rem';
+
+    const tip = document.createElement('p');
+    tip.textContent = '自动复制不可用，请手动选择下方文本复制：';
+    tip.style.cssText = 'margin:0 0 .5rem;font-size:.82rem;color:var(--fg-soft);font-family:var(--sans)';
+
+    const ta = document.createElement('textarea');
+    ta.value = payload;
+    ta.style.cssText = 'width:100%;min-height:7rem;font-family:ui-monospace,monospace;font-size:.82rem;line-height:1.6;padding:.5rem;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--fg)';
+    ta.setAttribute('readonly', '');
+
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = '关闭';
+    close.style.cssText = 'margin-top:.5rem;font-size:.82rem;padding:.28rem .7rem;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--fg-soft);cursor:pointer';
+    close.addEventListener('click', () => wrap.remove());
+
+    wrap.append(tip, ta, close);
+    const bar = document.querySelector('[data-copy-bar]');
+    bar?.parentNode?.insertBefore(wrap, bar.nextSibling);
+
+    ta.focus();
+    ta.select();
+  }
+
+  function flash(btn: HTMLButtonElement, msg: string) {
+    const original = btn.textContent ?? '';
+    btn.textContent = msg;
+    btn.classList.add('done');
+    window.setTimeout(() => {
+      btn.textContent = original;
+      btn.classList.remove('done');
+    }, 1400);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-copy-bar]').forEach((bar) => {
+    bar.addEventListener('click', async (ev) => {
+      const el = ev.target as HTMLElement;
+      const btn = el.closest('button') as HTMLButtonElement | null;
+      if (!btn) return;
+
+      if (btn.hasAttribute('data-print')) {
+        window.print();
+        return;
+      }
+
+      if (btn.hasAttribute('data-share')) {
+        const shareUrl = bar.querySelector<HTMLButtonElement>('[data-copy-target="link"]')?.dataset.payload ?? '';
+        if (navigator.share) {
+          try {
+            await navigator.share({ title: document.title, url: shareUrl });
+            return;
+          } catch { /* 用户取消或不支持，回退复制 */ }
+        }
+        if (await copyText(shareUrl)) {
+          flash(btn, '链接已复制');
+        } else {
+          flash(btn, '请手动复制');
+          showManualCopy(shareUrl);
+        }
+        return;
+      }
+
+      const payload = btn.dataset.payload ?? '';
+      if (await copyText(payload)) {
+        flash(btn, '已复制');
+      } else {
+        flash(btn, '请手动复制');
+        showManualCopy(payload);
+      }
+    });
+  });
+</script>

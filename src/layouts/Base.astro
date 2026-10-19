@@ -1,0 +1,71 @@
+---
+import { SITE, NAV } from '../consts';
+import { url, basePrefix } from '../lib/url';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** 当前路径（不含 base），用于导航高亮 */
+  path?: string;
+}
+
+const { title, description = SITE.description, path = Astro.url.pathname } = Astro.props;
+const pageTitle = title ? `${title} · ${SITE.title}` : `${SITE.title} · ${SITE.author}的诗文文集`;
+// 绝对地址必须带 base：部署在 /books 子路径时，缺 base 的 canonical 会指向站点根
+const canonical = new URL(basePrefix ? `${basePrefix}${path}` : path, Astro.site ?? SITE.url).href;
+const isActive = (href: string) => path === href || (href !== '/' && path.startsWith(href));
+---
+
+<!doctype html>
+<html lang={SITE.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={SITE.author} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="theme-color" content="#fdfcfa" />
+    <link rel="alternate" type="application/rss+xml" title={SITE.title} href={url('/rss.xml')} />
+    <link rel="icon" href={url('/favicon.svg')} type="image/svg+xml" />
+    <slot name="head" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap wide">
+        <a class="brand" href={url('/')}>
+          {SITE.title}
+          <span class="sub">江栖 · 诗文文集</span>
+        </a>
+        <nav class="site-nav" aria-label="主导航">
+          {NAV.map((item) => (
+            <a href={url(item.href)} aria-current={isActive(item.href) ? 'page' : undefined}>{item.label}</a>
+          ))}
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="wrap">
+        <slot />
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <p>© {SITE.since}–{new Date().getFullYear()} {SITE.author}　·　{SITE.title}</p>
+        <p>
+          原创作品采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="license noopener" target="_blank">CC BY-NC-SA 4.0</a> 授权，
+          整理转载作品权利归原作者。
+          <a href={url('/license/')}>授权说明</a>
+        </p>
+        <p><a href={url('/rss.xml')}>RSS 订阅</a>　·　<a href={url('/sitemap-index.xml')}>站点地图</a></p>
+      </div>
+    </footer>
+  </body>
+</html>

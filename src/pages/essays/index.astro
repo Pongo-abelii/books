@@ -1,0 +1,17 @@
+---
+import Base from '../../layouts/Base.astro';
+import EntryList from '../../components/EntryList.astro';
+import { published } from '../../lib/content';
+import { SECTIONS } from '../../consts';
+
+const items = await published('essays');
+const meta = SECTIONS.essays;
+---
+
+<Base title={meta.name} description={meta.desc} path="/essays/">
+  <h1>{meta.name}</h1>
+  <p style="color:var(--fg-mute);font-family:var(--sans);font-size:.85rem">
+    {meta.desc}　共 {items.length} 篇
+  </p>
+  <EntryList items={items.map((entry) => ({ section: 'essays' as const, entry }))} />
+</Base>

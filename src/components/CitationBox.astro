@@ -1,0 +1,91 @@
+---
+/**
+ * 引用格式盒：四种格式切换 + 一键复制
+ */
+import { citationAll, CITATION_STYLE_LABELS, type CitationStyle, type CitationInput } from '../lib/cite';
+
+interface Props {
+  input: CitationInput;
+}
+const { input } = Astro.props;
+const styles = citationAll(input);
+const styleKeys = Object.keys(styles) as CitationStyle[];
+---
+
+<div class="cite-box" data-cite-box>
+  <div class="tabs" role="tablist" aria-label="引用格式">
+    {styleKeys.map((k, i) => (
+      <button
+        type="button"
+        role="tab"
+        data-cite-tab={k}
+        aria-selected={i === 0 ? 'true' : 'false'}
+      >{CITATION_STYLE_LABELS[k]}</button>
+    ))}
+  </div>
+  <div class="body" role="tabpanel">
+    {styleKeys.map((k, i) => (
+      <pre data-cite-panel={k} hidden={i !== 0}>{styles[k]}</pre>
+    ))}
+  </div>
+  <div class="actions">
+    <button type="button" data-cite-copy>复制当前格式</button>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-cite-box]').forEach((box) => {
+    const tabs = box.querySelectorAll<HTMLButtonElement>('[data-cite-tab]');
+    const panels = box.querySelectorAll<HTMLPreElement>('[data-cite-panel]');
+
+    function select(key: string) {
+      tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.citeTab === key)));
+      panels.forEach((p) => { p.hidden = p.dataset.citePanel !== key; });
+    }
+
+    tabs.forEach((t) => t.addEventListener('click', () => select(t.dataset.citeTab ?? '')));
+
+    box.querySelector('[data-cite-copy]')?.addEventListener('click', async (ev) => {
+      const btn = ev.currentTarget as HTMLButtonElement;
+      const active = box.querySelector<HTMLPreElement>('[data-cite-panel]:not([hidden])');
+      const text = active?.textContent ?? '';
+
+      // 三级回退：clipboard API → execCommand → 手动选择
+      let ok = false;
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(text);
+          ok = true;
+        }
+      } catch { /* 落到下一级 */ }
+      if (!ok) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.top = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          ta.setSelectionRange(0, text.length);
+          ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+        } catch { ok = false; }
+      }
+
+      const orig = btn.textContent ?? '';
+      btn.textContent = ok ? '已复制' : '请手动复制';
+      btn.classList.add('done');
+      window.setTimeout(() => { btn.textContent = orig; btn.classList.remove('done'); }, 1400);
+
+      if (!ok && active) {
+        // 兜底：让用户能手动选中
+        active.hidden = false;
+        const r = document.createRange();
+        r.selectNodeContents(active);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(r);
+      }
+    });
+  });
+</script>

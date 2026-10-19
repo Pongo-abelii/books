@@ -1,0 +1,36 @@
+---
+import Base from '../../layouts/Base.astro';
+import { url } from '../../lib/url';
+import EntryList from '../../components/EntryList.astro';
+import { published } from '../../lib/content';
+import { SECTIONS } from '../../consts';
+
+const items = await published('poems');
+const meta = SECTIONS.poems;
+
+// 按朝代分组
+const byDynasty = new Map<string, typeof items>();
+for (const e of items) {
+  const d = e.data.dynasty;
+  const list = byDynasty.get(d) ?? [];
+  list.push(e);
+  byDynasty.set(d, list);
+}
+---
+
+<Base title={meta.name} description={meta.desc} path="/poems/">
+  <h1>{meta.name}</h1>
+  <p style="color:var(--fg-mute);font-family:var(--sans);font-size:.85rem">
+    {meta.desc}　共 {items.length} 篇
+  </p>
+
+  {byDynasty.size > 1 && (
+    <div class="tag-cloud">
+      {[...byDynasty.keys()].map((d) => (
+        <a href={url(`/dynasty/${encodeURIComponent(d)}/`)}>{d}（{byDynasty.get(d)!.length}）</a>
+      ))}
+    </div>
+  )}
+
+  <EntryList items={items.map((entry) => ({ section: 'poems' as const, entry }))} />
+</Base>

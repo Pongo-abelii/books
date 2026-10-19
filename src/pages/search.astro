@@ -1,0 +1,67 @@
+---
+/**
+ * 搜索页：Pagefind 在构建后生成索引，页面运行时加载其 UI。
+ *
+ * 加载方式说明：
+ *   用 <script src> 标签加载，不用 import() 动态导入。
+ *   实测 import('/pagefind/pagefind-ui.js') 在部分环境报
+ *   "Failed to resolve module specifier … base URL is about:blank"，
+ *   标签方式稳定可靠。
+ *
+ * Pagefind 原生支持中文，需在构建时传 --force-language zh-cn。
+ */
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/url';
+
+const uiJs = url('/pagefind/pagefind-ui.js');
+const uiCss = url('/pagefind/pagefind-ui.css');
+---
+
+<Base title="搜索" path="/search/">
+  <h1>搜索</h1>
+  <p style="color:var(--fg-mute);font-family:var(--sans);font-size:.85rem">
+    在全站诗、文、文档与整理内容中检索
+  </p>
+  <div id="search"></div>
+  <noscript>
+    <p class="empty">搜索需要 JavaScript。你仍可通过<a href={url('/archive/')}>全部作品</a>浏览。</p>
+  </noscript>
+</Base>
+
+<link rel="stylesheet" href={uiCss} />
+<script is:inline src={uiJs}></script>
+<script is:inline define:vars={{ uiJs }}>
+  // Pagefind 的 UI 资源由构建后的 pagefind 生成；本地 dev 模式下不存在，
+  // 此时给出提示而不是空白。
+  function initSearch() {
+    const target = document.getElementById('search');
+    if (!target) return;
+    if (typeof window.PagefindUI !== 'function') {
+      target.innerHTML = '<p class="empty">搜索索引尚未生成（本地开发模式下正常）。</p>';
+      return;
+    }
+    try {
+      new window.PagefindUI({
+        element: '#search',
+        showSubResults: true,
+        showImages: false,
+        translations: {
+          placeholder: '搜索…',
+          zero_results: '没有找到与「[SEARCH_TERM]」相关的内容',
+          many_results: '找到 [COUNT] 条与「[SEARCH_TERM]」相关的内容',
+          one_result: '找到 1 条与「[SEARCH_TERM]」相关的内容',
+          alt_search: '没有「[SEARCH_TERM]」的结果，改为显示「[DIFFERENT_TERM]」的结果',
+          search_suggestion: '没有找到结果，试试以下关键词：',
+          searching: '检索「[SEARCH_TERM]」…',
+        },
+      });
+    } catch {
+      target.innerHTML = '<p class="empty">搜索组件初始化失败。</p>';
+    }
+  }
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', initSearch);
+  } else {
+    initSearch();
+  }
+</script>

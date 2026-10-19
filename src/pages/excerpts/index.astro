@@ -1,0 +1,20 @@
+---
+import Base from '../../layouts/Base.astro';
+import EntryList from '../../components/EntryList.astro';
+import { published } from '../../lib/content';
+import { SECTIONS } from '../../consts';
+
+const items = await published('excerpts');
+const meta = SECTIONS.excerpts;
+---
+
+<Base title={meta.name} description={meta.desc} path="/excerpts/">
+  <h1>{meta.name}</h1>
+  <p style="color:var(--fg-mute);font-family:var(--sans);font-size:.85rem">
+    {meta.desc}　共 {items.length} 篇
+  </p>
+  <p style="color:var(--fg-soft);font-size:.9rem">
+    本栏收录江栖整理的他人佳作。原作权利归原作者，整理部分采用 CC BY-NC-SA 4.0 授权。
+  </p>
+  <EntryList items={items.map((entry) => ({ section: 'excerpts' as const, entry }))} />
+</Base>

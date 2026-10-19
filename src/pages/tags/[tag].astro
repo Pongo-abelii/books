@@ -1,0 +1,23 @@
+---
+import Base from '../../layouts/Base.astro';
+import { url } from '../../lib/url';
+import EntryList from '../../components/EntryList.astro';
+import { allPublished, groupBy } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const all = await allPublished();
+  const map = groupBy(all, ({ entry }) => entry.data.tags ?? []);
+  return [...map.keys()].map((tag) => ({ params: { tag }, props: { tag } }));
+}
+
+const { tag } = Astro.props;
+const all = await allPublished();
+const items = all.filter(({ entry }) => (entry.data.tags ?? []).includes(tag));
+---
+
+<Base title={`标签：${tag}`} path={`/tags/${tag}/`}>
+  <h1>标签：{tag}</h1>
+  <p style="color:var(--fg-mute);font-family:var(--sans);font-size:.85rem">共 {items.length} 篇</p>
+  <EntryList items={items} showSection />
+  <p style="margin-top:2rem"><a href={url('/tags/')}>← 全部标签</a></p>
+</Base>
